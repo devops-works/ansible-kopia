@@ -1,0 +1,12 @@
+- name: Adds deb repository
+  apt_key:
+    url: https://kopia.io/signing-key
+
+- name: Adds apt source
+  apt_repository:
+    repo: "deb http://packages.kopia.io/apt/ stable main"
+
+- name: Install kopia
+  apt:
+    pkg: kopia
+    state: present

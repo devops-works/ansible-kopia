@@ -1,0 +1,21 @@
+galaxy_info:
+  author: Michel Blanc
+  description: Ansible role for Kopia https://kopia.io/
+  company: DevopsWorks
+
+  license: MIT
+  min_ansible_version: 2.10
+
+  platforms:
+  - name: Debian
+    versions:
+    - all
+  - name: Ubuntu
+    versions:
+    - all
+
+  galaxy_tags:
+    - backup
+    - system
+
+dependencies: []
