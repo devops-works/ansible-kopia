@@ -1,20 +1,24 @@
-- name: Check repository state
-  command: "gsutil ls gs://{{ kopia_gcs_bucket }}/kopia.repository"
-  failed_when: false
-  changed_when: false
-  register: __kopia_repo_exists
+- name: Handle repository creation
+  block:
+    - name: Check repository state
+      command: "gsutil ls gs://{{ kopia_gcs_bucket }}/kopia.repository"
+      failed_when: false
+      changed_when: false
+      # register: __kopia_repo_exists
+  rescue:
+    - name: Create repository
+      command: "kopia repository create google --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
+      # when: __kopia_repo_exists is failed
+      # register: __kopia_new_repo
 
-- name: Create repository
-  command: "kopia repository create google --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
-  when: __kopia_repo_exists is failed
-  register: __kopia_new_repo
-
-- name: Check if repo is connected
-  command: "kopia repository status"
-  failed_when: false
-  changed_when: false
-  register: __kopia_repo_connected
-
-- name: Connect to repository
-  command: "kopia repository connect google --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
-  when: __kopia_repo_connected is failed
+- name: Handle repo connection
+  block:
+    - name: Check if repo is connected
+      command: "kopia repository status"
+      failed_when: false
+      changed_when: false
+      # register: __kopia_repo_connected
+  rescue:
+    - name: Connect to repository
+      command: "kopia repository connect google --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
+      # when: __kopia_repo_connected is failed
