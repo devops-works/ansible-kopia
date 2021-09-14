@@ -9,7 +9,7 @@
     - name: Create repository
       command: "kopia repository create google --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
       args:
-        reates: "~/.config/kopia/repository.config"
+        creates: "~/.config/kopia/repository.config"
 
 - name: Handle repo connection
   block:
