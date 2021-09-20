@@ -3,7 +3,6 @@
   block:
     - name: Check repository state
       command: "gsutil ls gs://{{ kopia_gcs_bucket }}/kopia.repository"
-      failed_when: false
       changed_when: false
   rescue:
     - name: Create repository
