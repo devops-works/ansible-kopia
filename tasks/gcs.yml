@@ -6,7 +6,7 @@
       changed_when: false
   rescue:
     - name: Create repository
-      command: "kopia repository create google --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
+      command: "kopia repository create gcs --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
       args:
         creates: "~/.config/kopia/repository.config"
 
@@ -18,4 +18,4 @@
       changed_when: false
   rescue:
     - name: Connect to repository
-      command: "kopia repository connect google --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
+      command: "kopia repository connect gcs --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
