@@ -6,9 +6,9 @@
   apt_repository:
     repo: "deb http://packages.kopia.io/apt/ stable main"
 
-- name: Install kopia & fusermount
+- name: Install kopia & fuse
   apt:
     pkg:
-      - fusermount
+      - fuse
       - kopia
     state: present
