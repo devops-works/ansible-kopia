@@ -1,10 +1,23 @@
-- name: Adds deb repository
-  apt_key:
+- name: Add apt keyrings directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Adds deb repository signing key
+  get_url:
     url: https://kopia.io/signing-key
+    dest: /etc/apt/keyrings/kopia.asc
+    owner: root
+    group: root
+    mode: 0644
 
 - name: Adds apt source
   apt_repository:
-    repo: "deb http://packages.kopia.io/apt/ stable main"
+    repo: "deb [signed-by=/etc/apt/keyrings/kopia.asc] http://packages.kopia.io/apt/ stable main"
+    filename: kopia
 
 - name: Install kopia & fuse
   apt:
