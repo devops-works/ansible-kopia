@@ -1,5 +1,12 @@
+---
+- name: Install python3-debian (required by deb822_repository)
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+    update_cache: yes
+
 - name: Add apt keyrings directory
-  file:
+  ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
     owner: root
@@ -7,34 +14,48 @@
     mode: 0755
 
 - name: Adds deb repository signing key
-  get_url:
+  ansible.builtin.get_url:
     url: https://kopia.io/signing-key
     dest: /etc/apt/keyrings/kopia.asc
     owner: root
     group: root
     mode: 0644
 
+- name: Remove legacy apt source files
+  ansible.builtin.file:
+    path: "/etc/apt/sources.list.d/{{ item }}"
+    state: absent
+  loop:
+    - kopia.list
+    - packages_kopia_io.list
+
 - name: Adds apt source
-  apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kopia.asc] http://packages.kopia.io/apt/ stable main"
-    filename: kopia
+  ansible.builtin.deb822_repository:
+    name: kopia
+    types: deb
+    uris: http://packages.kopia.io/apt/
+    suites: stable
+    components: main
+    signed_by: /etc/apt/keyrings/kopia.asc
+    state: present
 
 - name: Install kopia & fuse
-  apt:
+  ansible.builtin.apt:
     pkg:
       - fuse
       - kopia
     state: present
+    update_cache: yes
 
 - name: Add environment variables
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/environment
     line: "{{ item.key | upper }}={{ item.value }}"
     create: yes
   with_dict: "{{ kopia_environment_vars }}"
 
 - name: Add /var/log/kopia directory for cron logs
-  file:
+  ansible.builtin.file:
     path: /var/log/kopia
     state: directory
     owner: root
@@ -42,7 +63,7 @@
     mode: 0750
 
 - name: Add logrotate entry for logs
-  template:
+  ansible.builtin.template:
     src: kopia.logrotate.j2
     dest: /etc/logrotate.d/kopia
     owner: root

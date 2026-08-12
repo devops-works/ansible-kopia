@@ -2,20 +2,20 @@
 - name: Handle repository creation
   block:
     - name: Check repository state
-      command: "gsutil ls gs://{{ kopia_gcs_bucket }}/kopia.repository"
+      ansible.builtin.command: "gsutil ls gs://{{ kopia_gcs_bucket }}/kopia.repository"
       changed_when: false
   rescue:
     - name: Create repository
-      command: "kopia repository create gcs --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
+      ansible.builtin.command: "kopia repository create gcs --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
       args:
         creates: "~/.config/kopia/repository.config"
 
 - name: Handle repo connection
   block:
     - name: Check if repo is connected
-      command: "kopia repository status"
+      ansible.builtin.command: "kopia repository status"
       failed_when: false
       changed_when: false
   rescue:
     - name: Connect to repository
-      command: "kopia repository connect gcs --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"
+      ansible.builtin.command: "kopia repository connect gcs --bucket {{ kopia_gcs_bucket }} --password {{ kopia_gcs_password }}"

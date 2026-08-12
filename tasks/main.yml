@@ -1,10 +1,12 @@
 ---
-- import_tasks: install.yml
+- name: Install kopia
+  ansible.builtin.import_tasks: install.yml
   tags:
     - kopia
     - kopia:install
 
-- import_tasks: gcs.yml
+- name: Configure GCS repository
+  ansible.builtin.import_tasks: gcs.yml
   when: kopia_gcs_bucket is defined
   tags:
     - kopia
