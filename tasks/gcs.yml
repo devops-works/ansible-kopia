@@ -2,7 +2,7 @@
 - name: Handle repository creation
   block:
     - name: Check repository state
-      ansible.builtin.command: "gsutil ls gs://{{ kopia_gcs_bucket }}/kopia.repository"
+      ansible.builtin.command: "gcloud storage ls gs://{{ kopia_gcs_bucket }}/kopia.repository"
       changed_when: false
   rescue:
     - name: Create repository
