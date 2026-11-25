@@ -7,3 +7,52 @@ kopia_environment_vars:
   KOPIA_CONTENT_LOG_DIR_MAX_AGE: 720h
 
 kopia_keep_log_days: 3
+
+# S3 repository. Configured only when kopia_s3_bucket is defined; these have no
+# default on purpose:
+# kopia_s3_bucket:
+# kopia_s3_access_key:
+# kopia_s3_secret_key:
+# kopia_s3_password:
+
+# Host of the S3 endpoint, without scheme.
+kopia_s3_endpoint: s3.amazonaws.com
+kopia_s3_region: ""
+# Prefix inside the bucket. End it with "/" to use it as a directory.
+kopia_s3_prefix: ""
+
+# Create the repository when connecting fails. Set to false on hosts that must
+# only ever join an existing repository.
+kopia_s3_create: true
+# Connect read-only (restore hosts). Implies no creation and no change to the
+# repository settings.
+kopia_s3_readonly: false
+
+# Object lock (ransomware protection). The bucket must have been created with
+# object lock enabled. Mode is GOVERNANCE or COMPLIANCE; both values are needed
+# to turn it on, and they only apply when the repository is created.
+kopia_s3_retention_mode: ""
+# Go duration, at least 24h (e.g. 2160h for 90 days).
+kopia_s3_retention_period: ""
+
+# Maintenance. Full maintenance is what extends the locks: it must run more
+# often than the retention period, and kopia requires its interval to be at
+# least 24h shorter than that period.
+kopia_s3_manage_maintenance: true
+kopia_s3_full_maintenance_interval: 24h
+kopia_s3_extend_object_locks: false
+
+# Flags given to "kopia policy set --global", one list item per argument,
+# e.g. ['--keep-latest=10', '--keep-daily=30']. Empty: policy left untouched.
+kopia_policy_global_flags: []
+
+# Internal: argument lists built from the variables above.
+kopia_s3_storage_args: >-
+  {{ ['--bucket=' ~ kopia_s3_bucket, '--endpoint=' ~ kopia_s3_endpoint]
+     + (['--region=' ~ kopia_s3_region] if kopia_s3_region else [])
+     + (['--prefix=' ~ kopia_s3_prefix] if kopia_s3_prefix else []) }}
+kopia_s3_retention_args: >-
+  {{ ['--retention-mode=' ~ kopia_s3_retention_mode, '--retention-period=' ~ kopia_s3_retention_period]
+     if (kopia_s3_retention_mode and kopia_s3_retention_period) else [] }}
+kopia_s3_extend_locks_args: >-
+  {{ ['--extend-object-locks', 'true' if kopia_s3_extend_object_locks else 'false'] }}

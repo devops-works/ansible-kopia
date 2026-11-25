@@ -21,6 +21,10 @@
     group: root
     mode: 0644
 
+# Left by the apt_repository-based versions of this role, and by
+# "apt modernize-sources", which turns that .list into a .sources file with
+# the same base name. A second declaration of the repository with another
+# Signed-By makes apt refuse to read its sources.
 - name: Remove legacy apt source files
   ansible.builtin.file:
     path: "/etc/apt/sources.list.d/{{ item }}"
@@ -28,6 +32,8 @@
   loop:
     - kopia.list
     - packages_kopia_io.list
+    - packages_kopia_io_apt.list
+    - packages_kopia_io_apt.sources
 
 - name: Adds apt source
   ansible.builtin.deb822_repository:

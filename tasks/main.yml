@@ -11,3 +11,10 @@
   tags:
     - kopia
     - kopia:gcs
+
+- name: Configure S3 repository
+  ansible.builtin.import_tasks: s3.yml
+  when: kopia_s3_bucket is defined
+  tags:
+    - kopia
+    - kopia:s3
