@@ -1,0 +1,58 @@
+---
+# S3 and S3-compatible storage (AWS, Exoscale SOS, MinIO, ...).
+#
+# Credentials and the repository password go through the environment
+# (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, KOPIA_PASSWORD), which kopia reads
+# natively: on a command line they would show up in the process list.
+
+- name: Check if a repository is connected
+  ansible.builtin.command: kopia repository status
+  register: kopia_s3_status
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: Connect to the S3 repository, creating it if allowed
+  when: kopia_s3_status.rc != 0
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ kopia_s3_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ kopia_s3_secret_key }}"
+    KOPIA_PASSWORD: "{{ kopia_s3_password }}"
+  block:
+    - name: Connect to the S3 repository
+      ansible.builtin.command:
+        argv: "{{ ['kopia', 'repository', 'connect', 's3'] + kopia_s3_storage_args + (['--readonly'] if kopia_s3_readonly else []) }}"
+      changed_when: true
+  rescue:
+    # Reached when the repository does not exist yet, and also when the storage
+    # cannot be reached or the credentials are wrong. Creating is safe in every
+    # case: kopia refuses to create over existing repository data.
+    - name: Fail when the repository cannot be reached and may not be created
+      ansible.builtin.fail:
+        msg: >-
+          Cannot connect to the kopia repository in s3://{{ kopia_s3_bucket }}/{{ kopia_s3_prefix }}
+          and kopia_s3_create is false (or the host is read-only): not creating it.
+      when: not kopia_s3_create or kopia_s3_readonly
+
+    - name: Create the S3 repository
+      ansible.builtin.command:
+        argv: "{{ ['kopia', 'repository', 'create', 's3'] + kopia_s3_storage_args + kopia_s3_retention_args }}"
+      changed_when: true
+
+# The settings below live in the repository: only a host allowed to write
+# manages them. They are set on every run, which is idempotent.
+- name: Set repository maintenance parameters
+  ansible.builtin.command:
+    argv: "{{ ['kopia', 'maintenance', 'set', '--owner=me', '--full-interval=' ~ kopia_s3_full_maintenance_interval] + kopia_s3_extend_locks_args }}"
+  changed_when: false
+  when:
+    - not kopia_s3_readonly
+    - kopia_s3_manage_maintenance
+
+- name: Set global snapshot policy
+  ansible.builtin.command:
+    argv: "{{ ['kopia', 'policy', 'set', '--global'] + kopia_policy_global_flags }}"
+  changed_when: false
+  when:
+    - not kopia_s3_readonly
+    - kopia_policy_global_flags | length > 0
